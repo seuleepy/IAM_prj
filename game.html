@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식사 시간 - NO CAT CLUB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        body { 
+            background: #0a0a0a; 
+            color: #fff; 
+            font-family: 'Space Mono', monospace; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            padding-top: 90px;
+            padding-bottom: 50px;
+            box-sizing: border-box;
+        }
+        @media (max-height: 700px) { body { padding-top: 60px; } }
+        
+        .game-stage { 
+            display: grid; 
+            grid-template-columns: minmax(0, 1fr) 120px; 
+            gap: 20px; 
+            align-items: stretch; 
+            width: 100%; 
+            max-width: 980px; 
+            margin: 100px auto 0;
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+
+        #game-container { 
+            position: relative; 
+            width: 100%; 
+            height: 400px; 
+            overflow: hidden; 
+            background: #111; 
+            border: 2px solid #fff; 
+            box-shadow: 8px 8px 0px #000; 
+        }
+        
+        #timer-panel { 
+            width: 120px; 
+            height: 400px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            background: #111; 
+            border: 2px solid #fff; 
+            box-shadow: 8px 8px 0px #000; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+        .timer-track { width: 30px; height: 200px; background: #000; border: 2px solid #fff; margin: 10px auto; position: relative; }
+        .timer-fill { width: 100%; background: #fff; position: absolute; bottom: 0; transition: height 0.2s linear; }
+        
+        .player { 
+            position: absolute; 
+            bottom: 20px; 
+            width: 60px; 
+            height: 60px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 40px; 
+        }
+        .player-character { display: block; line-height: 1; }
+        .player-label {
+            position: absolute;
+            top: -17px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            padding: 0;
+            background: transparent;
+            color: #fff;
+            border: 0;
+
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .is-hidden { visibility: hidden; }
+        
+        .item { 
+            position: absolute; 
+            width: 42px; height: 42px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 32px; line-height: 1; 
+            border: 0; background: transparent; 
+            user-select: none; pointer-events: none; 
+            filter: drop-shadow(3px 3px 0 #000);
+        }
+
+        .retro-border { border: 2px solid #fff; padding: 10px 20px; margin-top: 20px; }
+        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .btn-start { border: 2px solid #fff; padding: 15px 30px; background: transparent; cursor: pointer; font-size: 20px; color: #fff; }
+        .btn-start:hover { background: #fff; color: #000; }
+        
+        .status-text { font-size: 10px; color: #aaa; margin-top: 5px; }
+        .item-legend { display: flex; gap: 15px; justify-content: center; margin-top: 20px; font-size: 12px; color: #fff; }
+
+        @media (max-width: 700px) {
+            .game-stage { grid-template-columns: 1fr; }
+            #timer-panel { width: 100%; height: auto; display: grid; grid-template-columns: auto auto 1fr auto; gap: 12px; }
+            .timer-track { width: 100%; height: 24px; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="fixed top-0 left-0 p-8 z-50 flex gap-6 text-sm mix-blend-difference pointer-events-auto text-white">
+        <a href="index.html" class="hover:text-lime-400">[ > 홈 ]</a>
+        <a href="cats.html" class="hover:text-lime-400">[ > 고양이 구경하기 ]</a>
+        <a href="game.html" class="hover:text-lime-400">[ > 둘이서 게임하기 ]</a>
+    </nav>
+
+    <div class="game-stage">
+        <div id="game-container">
+            <div id="overlay">
+                <h1 class="text-4xl font-bold mb-4">SYSTEM READY</h1>
+                <button class="btn-start" onclick="startGame()">[ GAME START ]</button>
+            </div>
+            <div id="p1" class="player" aria-label="PLAYER 1">
+                <span class="player-label">P1</span>
+                <span class="player-character">🐱</span>
+            </div>
+            <div id="p2" class="player" aria-label="PLAYER 2">
+                <span class="player-label">P2</span>
+                <span class="player-character">😺</span>
+            </div>
+        </div>
+        <aside id="timer-panel">
+            <p class="text-xs">TIME_LEFT</p>
+            <strong id="time-value" class="text-3xl">50</strong>
+            <div class="timer-track"><div id="timer-fill" class="timer-fill" style="height: 100%;"></div></div>
+            <p class="text-xs">SEC</p>
+        </aside>
+    </div>
+
+    <div class="flex gap-24 justify-center">
+        <div class="retro-border">
+            <p class="text-xs mb-2 text-gray-400">PLAYER 1 (A/D) - P1</p>
+            <div id="score1" class="text-5xl font-black text-[#4DEEFF]">0</div>
+            <p id="status1" class="status-text">STATUS: NORMAL</p>
+        </div>
+        <div class="retro-border">
+            <p class="text-xs mb-2 text-gray-400">PLAYER 2 (←/→) - P2</p>
+            <div id="score2" class="text-5xl font-black text-[#CCFF00]">0</div>
+            <p id="status2" class="status-text">STATUS: NORMAL</p>
+        </div>
+    </div>
+
+    <div class="item-legend">
+        <span>🐟 +1</span>
+        <span>🎁 +3</span>
+        <span>👻 상대 숨김 5초</span>
+        <span>🐌 상대 둔화 5초</span>
+    </div>
+
+    <script>
+        const GAME_DURATION = 50;
+        const NORMAL_SPEED = 8;
+        const SLOW_SPEED = 2.5;
+        const ITEM_TYPES = [
+            { type: 'fish', label: 'FISH', icon: '🐟', points: 1, weight: 65 },
+            { type: 'gift', label: 'BONUS_SNACK', icon: '🎁', points: 3, weight: 15 },
+            { type: 'hide', label: 'HIDE_SIGNAL', icon: '👻', points: 0, weight: 10 },
+            { type: 'slow', label: 'INPUT_LAG', icon: '🐌', points: 0, weight: 10 }
+        ];
+
+        let gameRunning = false, p1 = { x: 150, y: 340, score: 0, hiddenUntil: 0, slowedUntil: 0 }, p2 = { x: 600, y: 340, score: 0, hiddenUntil: 0, slowedUntil: 0 };
+        let items = [], gameEndTime = 0, lastSpawnTime = 0, nextSpawnDelay = 800, keys = {};
+        const container = document.getElementById('game-container');
+
+        window.addEventListener('keydown', e => { 
+            keys[e.key.toLowerCase()] = true; 
+            if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') e.preventDefault(); 
+        });
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+        window.addEventListener('blur', () => { Object.keys(keys).forEach(k => keys[k] = false); });
+
+        function selectRandomItemType() {
+            const random = Math.random() * 100;
+            let acc = 0;
+            for (const t of ITEM_TYPES) { acc += t.weight; if (random < acc) return t; }
+            return ITEM_TYPES[0];
+        }
+
+        function startGame() {
+            document.getElementById('overlay').innerHTML = '<h1 class="text-6xl font-bold" id="countdown">3</h1>';
+            let count = 3;
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) document.getElementById('countdown').innerText = count;
+                else {
+                    clearInterval(interval);
+                    document.getElementById('overlay').style.display = 'none';
+                    gameRunning = true;
+                    gameEndTime = performance.now() + GAME_DURATION * 1000;
+                    requestAnimationFrame(gameLoop);
+                }
+            }, 1000);
+        }
+
+        function gameLoop(now) {
+            if (!gameRunning) return;
+            const remaining = Math.max(0, gameEndTime - now);
+            const secs = Math.ceil(remaining / 1000);
+            
+            document.getElementById('time-value').innerText = secs;
+            const fill = document.getElementById('timer-fill');
+            fill.style.height = `${Math.max(0, Math.min(1, remaining / (GAME_DURATION * 1000))) * 100}%`;
+            fill.style.background = secs <= 10 ? '#ef4444' : (secs <= 20 ? '#f97316' : '#fff');
+
+            [ {p:p1, k:{l:'a', r:'d'}, id:'p1', s:'status1'}, {p:p2, k:{l:'arrowleft', r:'arrowright'}, id:'p2', s:'status2'} ].forEach((data) => {
+                const speed = now < data.p.slowedUntil ? SLOW_SPEED : NORMAL_SPEED;
+                const pEl = document.getElementById(data.id);
+                const maxX = container.clientWidth - pEl.offsetWidth;
+                
+                if (keys[data.k.l]) data.p.x -= speed;
+                if (keys[data.k.r]) data.p.x += speed;
+                data.p.x = Math.max(0, Math.min(data.p.x, maxX));
+                
+                pEl.style.left = data.p.x + 'px';
+                pEl.classList.toggle('is-hidden', now < data.p.hiddenUntil);
+                
+                let status = "NORMAL";
+                if (now < data.p.hiddenUntil && now < data.p.slowedUntil) status = "SIGNAL LOST / INPUT LAG";
+                else if (now < data.p.hiddenUntil) status = "SIGNAL LOST " + Math.max(0, ((data.p.hiddenUntil - now)/1000)).toFixed(1) + "s";
+                else if (now < data.p.slowedUntil) status = "INPUT LAG " + Math.max(0, ((data.p.slowedUntil - now)/1000)).toFixed(1) + "s";
+                document.getElementById(data.s).innerText = "STATUS: " + status;
+            });
+
+            if (now - lastSpawnTime > nextSpawnDelay) {
+                const type = selectRandomItemType();
+                const el = document.createElement('div');
+                el.className = 'item';
+                el.textContent = type.icon;
+                const maxItemX = container.clientWidth - 42;
+                el.style.left = Math.random() * maxItemX + 'px';
+                el.style.top = '-50px';
+                container.appendChild(el);
+                items.push({ el, type, y: -50 });
+                lastSpawnTime = now;
+                nextSpawnDelay = 650 + Math.random() * 300;
+            }
+
+            items.forEach((item, idx) => {
+                item.y += 3;
+                item.el.style.top = item.y + 'px';
+                if (item.y > 400) { item.el.remove(); items.splice(idx, 1); return; }
+
+                [p1, p2].forEach((p, pIdx) => {
+                    const pEl = document.getElementById(pIdx === 0 ? 'p1' : 'p2');
+                    if (Math.abs(item.y - 340) < 40 && Math.abs(parseInt(item.el.style.left) - p.x) < 40) {
+                        if (item.type.type === 'hide') { const target = pIdx === 0 ? p2 : p1; target.hiddenUntil = now + 5000; }
+                        else if (item.type.type === 'slow') { const target = pIdx === 0 ? p2 : p1; target.slowedUntil = now + 5000; }
+                        else p.score += item.type.points;
+                        document.getElementById('score' + (pIdx + 1)).innerText = p.score;
+                        item.el.remove(); items.splice(idx, 1);
+                    }
+                });
+            });
+
+            if (secs <= 0) endGame(); else requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameRunning = false;
+            document.getElementById('overlay').style.display = 'flex';
+            const winner = p1.score > p2.score ? 'PLAYER 1 WINS' : (p2.score > p1.score ? 'PLAYER 2 WINS' : 'DRAW');
+            document.getElementById('overlay').innerHTML = `<h1 class="text-4xl font-bold">${winner}</h1><p>SCORE: ${p1.score} / ${p2.score}</p><button class="btn-start mt-4" onclick="resetGame()">[ PLAY AGAIN ]</button>`;
+        }
+
+        function resetGame() {
+            p1 = { x: 150, y: 340, score: 0, hiddenUntil: 0, slowedUntil: 0 };
+            p2 = { x: 600, y: 340, score: 0, hiddenUntil: 0, slowedUntil: 0 };
+            document.getElementById('score1').innerText = '0';
+            document.getElementById('score2').innerText = '0';
+            document.getElementById('p1').classList.remove('is-hidden');
+            document.getElementById('p2').classList.remove('is-hidden');
+            items.forEach(i => i.el.remove());
+            items = [];
+            startGame();
+        }
+    </script>
+</body>
+</html>

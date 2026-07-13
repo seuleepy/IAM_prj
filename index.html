@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만 고양이 없어</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        body { background: #0a0a0a; color: #fff; font-family: 'Space Mono', monospace; overflow-x: hidden; }
+        
+        .grid-bg {
+            background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .hero-title {
+            font-size: clamp(5rem, 15vw, 14rem);
+            line-height: 0.78;
+            letter-spacing: -0.07em;
+        }
+
+        @media (max-width: 1024px) {
+            .hero-title { font-size: clamp(4.5rem, 14vw, 9rem); }
+        }
+
+        @media (max-width: 640px) {
+            .hero-title { font-size: clamp(4rem, 20vw, 6.5rem); line-height: 0.82; }
+        }
+
+        .card-main { width: clamp(320px, 27vw, 390px); }
+        .card-large { width: clamp(260px, 21vw, 310px); }
+        .card-medium { width: clamp(235px, 19vw, 285px); }
+
+        .cat-card-wrapper {
+            position: absolute;
+            transition: transform 0.1s linear;
+        }
+
+        .cat-card-inner {
+            border: 2px solid #fff;
+            background: #111;
+            padding: 8px;
+            box-shadow: 8px 8px 0px #000;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cat-card-inner img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .window-header {
+            background: #333;
+            padding: 2px 8px;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #fff;
+            margin-bottom: 6px;
+        }
+
+        /* 레트로 오류 창 스타일 */
+        .retro-window {
+            position: absolute;
+            border: 2px solid #fff;
+            background: #111;
+            padding: 8px;
+            box-shadow: 8px 8px 0px #000;
+            width: 200px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        @media (min-width: 1025px) {
+            .cat-card-wrapper:hover .cat-card-inner {
+                transform: scale(1.02) rotate(0deg);
+                z-index: 50;
+                box-shadow: 15px 15px 0px #000;
+            }
+        }
+
+        .cta-btn {
+            border: 2px solid #fff;
+            padding: 12px 24px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .cta-btn:hover { background: #fff; color: #000; transform: translate(-3px, -3px); }
+
+        .cursor-blink { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        @media (max-width: 640px) {
+            #hero { display: block !important; padding: 24px 16px 40px !important; }
+            .hero-heading { position: relative !important; inset: auto !important; padding: 40px 0 24px !important; }
+            #collage { height: auto !important; transform: none !important; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+            .cat-card-wrapper { position: relative !important; top: auto !important; right: auto !important; bottom: auto !important; left: auto !important; transform: none !important; margin: 0; }
+            .cat-card-inner { width: min(88vw, 380px) !important; margin: 0 auto; }
+            .system-panel { position: relative; inset: auto; width: 100%; margin: 24px 0; }
+            .hero-actions { position: relative; inset: auto; display: flex; flex-direction: column; gap: 12px; margin-top: 32px; width: 100%; }
+            .retro-window { display: none; }
+        }
+    </style>
+</head>
+<body class="grid-bg min-h-screen">
+
+    <nav class="fixed top-0 left-0 p-8 z-50 flex gap-6 text-sm mix-blend-difference pointer-events-auto text-white">
+        <a href="index.html" class="hover:text-lime-400">[ > 홈 ]</a>
+        <a href="cats.html" class="hover:text-lime-400">[ > 고양이 구경하기 ]</a>
+        <a href="game.html" class="hover:text-lime-400">[ > 둘이서 게임하기 ]</a>
+    </nav>
+
+    <main id="hero" class="relative min-h-screen flex items-center justify-center p-8">
+        
+        <div class="hero-heading absolute inset-0 flex flex-col justify-center p-12 pointer-events-none z-10">
+            <h1 class="hero-title text-white font-black mix-blend-difference">나만</h1>
+            <h1 class="hero-title text-transparent font-black stroke-white" style="-webkit-text-stroke: 2px #fff;">고양이</h1>
+            <h1 class="hero-title text-lime-400 font-black ml-10 md:ml-20">없어</h1>
+        </div>
+
+        <!-- 레트로 시스템 메시지 창 -->
+        <div class="retro-window" style="top: 70%; left: 8%;">
+            <div class="window-header"><span>[ _ □ × ]</span> SYSTEM.EXE</div>
+            <p class="text-[10px] text-white">SEARCHING FOR MY CAT...<br><br>
+               <span class="text-red-500 font-bold">ERROR:</span><br>CAT NOT FOUND<span class="cursor-blink">_</span></p>
+        </div>
+
+        <div id="collage" class="relative w-full max-w-6xl h-[80vh] flex-grow z-0">
+            <div class="cat-card-wrapper" style="top: 14%; left: 11%;" data-speed="0.01">
+                <div class="cat-card-inner card-medium rotate-[-2deg]">
+                    <div class="window-header"><span>[ _ □ × ]</span> IMAGE_01.JPG</div>
+                    <img src="https://i.pinimg.com/736x/91/f5/74/91f574529f3397d1bd857b92abbe421f.jpg">
+                    <div class="text-[9px] text-gray-500 mt-1">CAT_SIGNAL_FOUND</div>
+                </div>
+            </div>
+            <div class="cat-card-wrapper" style="top: 31%; left: 45%;" data-speed="0.02">
+                <div class="cat-card-inner card-main rotate-[1deg]">
+                    <div class="window-header"><span>[ _ □ × ]</span> IMAGE_02.JPG</div>
+                    <img src="https://i.pinimg.com/1200x/31/8e/ab/318eabfff79638d3bf18969bf8c1802e.jpg">
+                    <div class="text-[9px] text-gray-500 mt-1">UNKNOWN_CAT</div>
+                </div>
+            </div>
+            <div class="cat-card-wrapper" style="top: 17%; right: 12%;" data-speed="0.03">
+                <div class="cat-card-inner card-large rotate-[3deg]">
+                    <div class="window-header"><span>[ _ □ × ]</span> IMAGE_03.JPG</div>
+                    <img src="https://i.pinimg.com/736x/6a/e4/1e/6ae41e70e0d553749216fb010a4f7faf.jpg">
+                    <div class="text-[9px] text-gray-500 mt-1">INTERNET_ARCHIVE</div>
+                </div>
+            </div>
+            <div class="cat-card-wrapper" style="bottom: 8%; left: 41%;" data-speed="0.02">
+                <div class="cat-card-inner card-large rotate-[1deg]">
+                    <div class="window-header"><span>[ _ □ × ]</span> IMAGE_04.JPG</div>
+                    <img src="https://i.pinimg.com/1200x/d0/07/b4/d007b4e916c5a9188f264941c46433c3.jpg">
+                    <div class="text-[9px] text-gray-500 mt-1">SIGNAL_RECEIVED</div>
+                </div>
+            </div>
+            <div class="cat-card-wrapper" style="bottom: 10%; right: 12%;" data-speed="0.04">
+                <div class="cat-card-inner card-medium rotate-[-2deg]">
+                    <div class="window-header"><span>[ _ □ × ]</span> IMAGE_05.JPG</div>
+                    <img src="https://i.pinimg.com/736x/62/cd/9e/62cd9e0038957d9e163a9c69207bb353.jpg">
+                    <div class="text-[9px] text-gray-500 mt-1">FILE_LOADED</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-actions absolute bottom-10 left-10 z-20 space-y-4 pointer-events-auto">
+            <a href="cats.html" class="cta-btn block text-center">[ > 고양이 구경하기 ]</a>
+            <a href="game.html" class="cta-btn block text-center">[ > 둘이서 게임하기 ]</a>
+        </div>
+
+        <div class="system-panel absolute top-20 right-10 z-20 border border-gray-600 p-4 bg-black w-60 pointer-events-auto">
+            <p class="text-[10px] text-lime-400">CATLESS OS v1.0</p>
+            <p class="text-[10px] mt-2">SEARCHING...<br>5 IMAGES LOADED.<br>0 CATS OWNED.<span class="cursor-blink">_</span></p>
+        </div>
+    </main>
+
+    <script>
+        const wrappers = document.querySelectorAll('.cat-card-wrapper');
+        let targetX = 0, targetY = 0;
+        let currentX = 0, currentY = 0;
+
+        function updateParallaxState() {
+            const enabled = window.matchMedia('(min-width: 1025px)').matches;
+            if (!enabled) {
+                wrappers.forEach((el) => { el.style.transform = ''; });
+                targetX = 0; targetY = 0; currentX = 0; currentY = 0;
+            }
+            return enabled;
+        }
+
+        window.addEventListener('resize', updateParallaxState);
+        window.addEventListener('mousemove', (e) => {
+            if (updateParallaxState()) {
+                targetX = (e.clientX / window.innerWidth - 0.5) * 10;
+                targetY = (e.clientY / window.innerHeight - 0.5) * 10;
+            }
+        });
+
+        function animate() {
+            if (updateParallaxState()) {
+                currentX += (targetX - currentX) * 0.05;
+                currentY += (targetY - currentY) * 0.05;
+                wrappers.forEach((el) => {
+                    const speed = parseFloat(el.getAttribute('data-speed'));
+                    el.style.transform = `translate(${currentX * speed * 2}px, ${currentY * speed * 2}px)`;
+                });
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
